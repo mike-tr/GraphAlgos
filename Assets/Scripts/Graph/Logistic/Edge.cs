@@ -8,7 +8,7 @@ namespace MGraph {
 
         public delegate void OnObjectDestroyed ();
         public OnObjectDestroyed OnObjectDestroyedCallback;
-
+        public IEdgeReference reference;
         public int src { get; private set; }
         public int dest { get; private set; }
         public Edge (int src, int dest) {

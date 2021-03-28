@@ -351,6 +351,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bipartite: 1
+  vertex1: {fileID: 0}
+  vertex2: {fileID: 0}
+  edge: {fileID: 0}
+  BColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.9811321, g: 0.5322179, b: 0.5322179, a: 1}
+  state: 0
+  vertexPrefab: {fileID: 5353059001432236064, guid: 36c78c3c4056293448f2e2dcff996351, type: 3}
+  edgePrefab: {fileID: 1968132258297792210, guid: 9c76d73003effe34681492b7bfffbc0d, type: 3}
 --- !u!1 &1161671190
 GameObject:
   m_ObjectHideFlags: 0
@@ -467,7 +476,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1360155572
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -787,6 +796,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Edge
       objectReference: {fileID: 0}
+    - target: {fileID: 1968132258297792215, guid: 9c76d73003effe34681492b7bfffbc0d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9c76d73003effe34681492b7bfffbc0d, type: 3}
 --- !u!1001 &3156056991144701261
@@ -965,13 +978,13 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 5353059000125475356, guid: 36c78c3c4056293448f2e2dcff996351, type: 3}
-      propertyPath: m_SortingLayerID
-      value: 1878455059
-      objectReference: {fileID: 0}
     - target: {fileID: 5353059001432236068, guid: 36c78c3c4056293448f2e2dcff996351, type: 3}
       propertyPath: m_Name
       value: Node
+      objectReference: {fileID: 0}
+    - target: {fileID: 5353059001432236068, guid: 36c78c3c4056293448f2e2dcff996351, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5353059001432236070, guid: 36c78c3c4056293448f2e2dcff996351, type: 3}
       propertyPath: m_LocalPosition.x

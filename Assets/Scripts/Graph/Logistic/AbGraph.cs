@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MGraph {
     public abstract class AbGraph {
-        private int NextNodeId = 0;
+        private int NextNodeId = 1;
         protected Dictionary<int, Node> nodes = new Dictionary<int, Node> ();
         protected Dictionary<int, Dictionary<int, Edge>> edges = new Dictionary<int, Dictionary<int, Edge>> ();
         protected Dictionary<int, List<int>> incomingEdges = new Dictionary<int, List<int>> ();
@@ -49,17 +49,21 @@ namespace MGraph {
         /// <param name="nID"></param>
         public void RemoveNode (int nID) {
             if (nodes.ContainsKey (nID)) {
-                nodes[nID].Destroy ();
+                nodes[nID].DestroySelf ();
                 nodes.Remove (nID);
 
                 foreach (int n2 in edges[nID].Keys) {
                     RemoveEdge (nID, n2);
                 }
 
-                foreach (int n2 in incomingEdges[nID]) {
+                foreach (int n2 in incomingEdges[nID].ToArray ()) {
                     RemoveDEdge (n2, nID);
                 }
             }
+        }
+
+        public virtual bool CheckPossibleConnection (int n1, int n2) {
+            return NodeExist (n1) && NodeExist (n2);
         }
 
         public void RemoveEdge (int n1, int n2) {
@@ -88,12 +92,19 @@ namespace MGraph {
             if (edges.TryGetValue (n1, out var nedges)) {
                 if (nedges.ContainsKey (n2)) {
                     Edge ed = nedges[n2];
-                    ed.Destroy ();
+                    ed.DestroySelf ();
                     nedges.Remove (n2);
 
                     incomingEdges[n2].Remove (n1);
                 }
             }
+        }
+
+        public Edge GetEdge (int n1, int n2) {
+            if (NodeExist (n1)) {
+                return InnerGetEdge (n1, n2);
+            }
+            return null;
         }
 
         public abstract (Edge, Edge) AddEdge (int n1, int n2);

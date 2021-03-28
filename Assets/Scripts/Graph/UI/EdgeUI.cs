@@ -1,18 +1,84 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using MGraph;
 using UnityEngine;
 using UnityEngine.EventSystems;
-
-public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable {
+public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeReference {
     // Start is called before the first frame update
 
     [SerializeField] private LineRenderer line;
+    [SerializeField] private LineRenderer focus;
     [SerializeField] private BoxCollider2D boxCollider2D;
 
-    GraphCreator graph;
+    private AbGraph graph;
+    GraphCreator graphcreator;
+
+    List<Edge> edges = new List<Edge> ();
+
+    VertexUI v1, v2;
     void Start () {
         UpdateCollider ();
-        graph = GraphCreator.instance;
+        graphcreator = GraphCreator.instance;
+
+        Unfocus ();
+    }
+
+    public void Initialize (AbGraph graph, VertexUI n1, VertexUI n2, bool directed = false) {
+        if (graph == null || n1 == null || n2 == null) {
+            throw new System.ArgumentNullException ();
+        }
+
+        if (v1) {
+            v1.OnSetPosCallback -= OnMoved;
+            v1.node.OnObjectDestroyedCallback -= DestroySelf;
+        }
+
+        if (v2) {
+            v2.OnSetPosCallback -= OnMoved;
+            v2.node.OnObjectDestroyedCallback -= DestroySelf;
+        }
+
+        n1.OnSetPosCallback += OnMoved;
+        n1.node.OnObjectDestroyedCallback += DestroySelf;
+        n2.OnSetPosCallback += OnMoved;
+        n2.node.OnObjectDestroyedCallback += DestroySelf;
+
+        this.v1 = n1;
+        this.v2 = n2;
+
+        UnSubscribe ();
+        edges = new List<Edge> ();
+        this.graph = graph;
+
+        OnMoved ();
+        if (directed) {
+            var edge = graph.AddDEdge (n1.id, n2.id);
+            edges.Add (edge);
+
+            Subscribe (edge);
+
+            line.endColor = Color.black;
+            return;
+        }
+        line.endColor = Color.white;
+        var eds = graph.AddEdge (n1.id, n2.id);
+        edges.Add (eds.Item1);
+        Subscribe (eds.Item1);
+        edges.Add (eds.Item2);
+        Subscribe (eds.Item2);
+    }
+
+    public bool AddEdge (int n1, int n2) {
+        if (v1.id == n1 && v2.id == n2) {
+            line.startColor = Color.white;
+            graph.AddDEdge (n1, n2);
+            return true;
+        } else if (v2.id == n1 && v1.id == n2) {
+            line.endColor = Color.white;
+            graph.AddDEdge (n1, n2);
+            return true;
+        }
+        return false;
     }
 
     public void UpdateCollider () {
@@ -27,26 +93,47 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable {
         boxt.up = dir.normalized;
     }
 
+    public void OnMoved () {
+        line.SetPosition (0, v1.transform.position);
+        line.SetPosition (1, v2.transform.position);
+
+        focus.SetPosition (0, v1.transform.position);
+        focus.SetPosition (1, v2.transform.position);
+
+        UpdateCollider ();
+    }
     //Detect if a click occurs
     public void OnPointerClick (PointerEventData pointerEventData) {
         //Output to console the clicked GameObject's name and the following message. You can replace this with your own actions for when clicking the GameObject.
+        graphcreator.FocusEdge (this);
         Debug.Log (name + " Game Object Clicked!");
     }
 
-    // Update is called once per frame
-    void Update () {
-
+    private void UnSubscribe () {
+        foreach (var edge in edges) {
+            edge.reference = null;
+        }
     }
 
     public void DestroySelf () {
-        throw new System.NotImplementedException ();
+        if (edges.Count > 0) {
+            var e = edges[0];
+            graph.RemoveEdge (e.src, e.dest);
+        }
+        Destroy (this.gameObject);
     }
 
     public void Focus () {
-        throw new System.NotImplementedException ();
+        focus.gameObject.SetActive (true);
+        //throw new System.NotImplementedException ();
     }
 
     public void Unfocus () {
-        throw new System.NotImplementedException ();
+        focus.gameObject.SetActive (false);
+        //throw new System.NotImplementedException ();
+    }
+
+    public void Subscribe (Edge edge) {
+        edge.reference = this;
     }
 }

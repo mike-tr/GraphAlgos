@@ -8,7 +8,7 @@ namespace MGraph {
         public OnObjectDestroyed OnObjectDestroyedCallback;
         // Start is called before the first frame update
         public int id { get; protected set; }
-        public Vector3 pos { get; protected set; }
+        public Vector3 pos;
         public Node (int id) {
             this.id = id;
         }

@@ -9,7 +9,13 @@ namespace MGraph {
                 Debug.Log ("Cannot have connections between nodes in the same group");
                 return null;
             }
+
             if (NodeExist (n1) && NodeExist (n2)) {
+                var edge = GetEdge (n1, n2);
+                if (edge != null) {
+                    return edge;
+                }
+
                 Edge E = InnerGetEdge (n1, n2);
                 if (E == null) {
                     E = new Edge (n1, n2);
@@ -23,6 +29,10 @@ namespace MGraph {
 
         public override (Edge, Edge) AddEdge (int n1, int n2) {
             return (AddDEdge (n1, n2), AddDEdge (n2, n1));
+        }
+
+        public override bool CheckPossibleConnection (int n1, int n2) {
+            return NodeExist (n1) && NodeExist (n2) && n1 % 2 != n2 % 2;
         }
     }
 }
