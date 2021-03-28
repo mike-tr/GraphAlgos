@@ -5,13 +5,21 @@ using UnityEngine;
 namespace MGraph {
     public class Edge {
         // Start is called before the first frame update
-        void Start () {
 
+        public delegate void OnObjectDestroyed ();
+        public OnObjectDestroyed OnObjectDestroyedCallback;
+
+        public int src { get; private set; }
+        public int dest { get; private set; }
+        public Edge (int src, int dest) {
+            this.src = src;
+            this.dest = dest;
         }
 
-        // Update is called once per frame
-        void Update () {
-
+        public void DestroySelf () {
+            if (OnObjectDestroyedCallback != null) {
+                OnObjectDestroyedCallback.Invoke ();
+            }
         }
     }
 }

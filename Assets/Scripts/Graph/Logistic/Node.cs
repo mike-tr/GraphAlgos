@@ -4,12 +4,19 @@ using UnityEngine;
 
 namespace MGraph {
     public class Node {
+        public delegate void OnObjectDestroyed ();
+        public OnObjectDestroyed OnObjectDestroyedCallback;
         // Start is called before the first frame update
-        private int id;
+        public int id { get; protected set; }
+        public Vector3 pos { get; protected set; }
         public Node (int id) {
             this.id = id;
         }
 
-        public virtual void Destroy () { }
+        public void DestroySelf () {
+            if (OnObjectDestroyedCallback != null) {
+                OnObjectDestroyedCallback.Invoke ();
+            }
+        }
     }
 }

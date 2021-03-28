@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class EdgeUI : MonoBehaviour, IPointerClickHandler {
+public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable {
     // Start is called before the first frame update
 
     [SerializeField] private LineRenderer line;
     [SerializeField] private BoxCollider2D boxCollider2D;
+
+    GraphCreator graph;
     void Start () {
         UpdateCollider ();
+        graph = GraphCreator.instance;
     }
 
     public void UpdateCollider () {
@@ -33,5 +36,17 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler {
     // Update is called once per frame
     void Update () {
 
+    }
+
+    public void DestroySelf () {
+        throw new System.NotImplementedException ();
+    }
+
+    public void Focus () {
+        throw new System.NotImplementedException ();
+    }
+
+    public void Unfocus () {
+        throw new System.NotImplementedException ();
     }
 }

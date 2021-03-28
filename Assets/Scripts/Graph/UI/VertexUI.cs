@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
+public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, ITargetable {
     private static Camera cam;
     [SerializeField] Text text;
 
