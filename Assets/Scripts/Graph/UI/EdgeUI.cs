@@ -15,7 +15,7 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
 
     List<Edge> edges = new List<Edge> ();
 
-    VertexUI v1, v2;
+    Node v1, v2;
     void Start () {
         UpdateCollider ();
         graphcreator = GraphCreator.instance;
@@ -23,25 +23,25 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
         Unfocus ();
     }
 
-    public void Initialize (AbGraph graph, VertexUI n1, VertexUI n2, bool directed = false) {
+    public void Initialize (AbGraph graph, Node n1, Node n2, bool directed = false) {
         if (graph == null || n1 == null || n2 == null) {
             throw new System.ArgumentNullException ();
         }
 
-        if (v1) {
-            v1.OnSetPosCallback -= OnMoved;
-            v1.node.OnObjectDestroyedCallback -= DestroySelf;
+        if (v1 != null) {
+            v1.OnSetPosCallBack -= OnMoved;
+            v1.OnObjectDestroyedCallback -= DestroySelf;
         }
 
-        if (v2) {
-            v2.OnSetPosCallback -= OnMoved;
-            v2.node.OnObjectDestroyedCallback -= DestroySelf;
+        if (v2 != null) {
+            v2.OnSetPosCallBack -= OnMoved;
+            v2.OnObjectDestroyedCallback -= DestroySelf;
         }
 
-        n1.OnSetPosCallback += OnMoved;
-        n1.node.OnObjectDestroyedCallback += DestroySelf;
-        n2.OnSetPosCallback += OnMoved;
-        n2.node.OnObjectDestroyedCallback += DestroySelf;
+        n1.OnSetPosCallBack += OnMoved;
+        n1.OnObjectDestroyedCallback += DestroySelf;
+        n2.OnSetPosCallBack += OnMoved;
+        n2.OnObjectDestroyedCallback += DestroySelf;
 
         this.v1 = n1;
         this.v2 = n2;
@@ -94,11 +94,11 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
     }
 
     public void OnMoved () {
-        line.SetPosition (0, v1.transform.position);
-        line.SetPosition (1, v2.transform.position);
+        line.SetPosition (0, v1.position);
+        line.SetPosition (1, v2.position);
 
-        focus.SetPosition (0, v1.transform.position);
-        focus.SetPosition (1, v2.transform.position);
+        focus.SetPosition (0, v1.position);
+        focus.SetPosition (1, v2.position);
 
         UpdateCollider ();
     }
@@ -115,11 +115,16 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
         }
     }
 
+    bool des = false;
     public void DestroySelf () {
+        if (des) {
+            return;
+        }
         if (edges.Count > 0) {
             var e = edges[0];
             graph.RemoveEdge (e.src, e.dest);
         }
+        des = true;
         Destroy (this.gameObject);
     }
 
@@ -135,5 +140,10 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
 
     public void Subscribe (Edge edge) {
         edge.reference = this;
+    }
+
+    private void OnDisable () {
+        // print ("Edge destroyed");
+        UnSubscribe ();
     }
 }

@@ -8,6 +8,8 @@ public enum GraphCState {
     Edge,
 }
 public class GraphCreator : MonoBehaviour {
+    // private List<EdgeUI> edgesUIs = new List<EdgeUI> ();
+    // private List<VertexUI> vertexUIs = new List<VertexUI> ();
     public static GraphCreator instance;
     // Start is called before the first frame update
     public bool bipartite = true;
@@ -27,6 +29,8 @@ public class GraphCreator : MonoBehaviour {
     [SerializeField] private VertexUI vertexPrefab;
     [SerializeField] private EdgeUI edgePrefab;
 
+    private Transform edgeHolder, nodeHolder;
+
     float lastClick = 0;
     void Awake () {
         if (instance == null) {
@@ -42,6 +46,14 @@ public class GraphCreator : MonoBehaviour {
         }
 
         cam = Camera.main;
+
+        edgeHolder = new GameObject ("Edges").transform;
+        nodeHolder = new GameObject ("Nodes").transform;
+        edgeHolder.parent = this.transform;
+        nodeHolder.parent = this.transform;
+
+        edgeHolder.position = Vector3.zero;
+        nodeHolder.position = Vector3.zero;
     }
 
     // Update is called once per frame
@@ -61,6 +73,8 @@ public class GraphCreator : MonoBehaviour {
                         nodeOb.SetColor (BColors[node.id % 2]);
                     }
                     nodeOb.SetPosition (cam.ScreenToWorldPoint (Input.mousePosition));
+                    nodeOb.transform.parent = nodeHolder;
+
                     lastClick = 0;
                 } else {
                     lastClick = Time.timeSinceLevelLoad + 0.5f;
@@ -86,27 +100,32 @@ public class GraphCreator : MonoBehaviour {
         if (vertexTarget[0] && vertexTarget[1]) {
             int id1 = vertexTarget[0].id;
             int id2 = vertexTarget[1].id;
-            if (graph.CheckPossibleConnection (id1, id2)) {
-                var edge = graph.GetEdge (id1, id2);
-                if (edge?.reference != null) {
-                    UnfocusVertecies ();
-                    UnforcusEdge ();
-                    return;
-                }
-
-                edge = graph.GetEdge (id2, id1);
-                if (edge?.reference != null) {
-                    edge.reference.AddEdge (id1, id2);
-                    UnfocusVertecies ();
-                    UnforcusEdge ();
-                    return;
-                }
-                var edgeUI = Instantiate (edgePrefab);
-                edgeUI.Initialize (graph, vertexTarget[0], vertexTarget[1], true);
-            }
+            CreateEdge (id1, id2);
         }
         UnfocusVertecies ();
         UnforcusEdge ();
+    }
+
+    private void CreateEdge (int n1, int n2) {
+        if (graph.CheckPossibleConnection (n1, n2)) {
+            var edge = graph.GetEdge (n1, n2);
+            if (edge?.reference != null) {
+                UnfocusVertecies ();
+                UnforcusEdge ();
+                return;
+            }
+
+            edge = graph.GetEdge (n2, n1);
+            if (edge?.reference != null) {
+                edge.reference.AddEdge (n1, n2);
+                UnfocusVertecies ();
+                UnforcusEdge ();
+                return;
+            }
+            var edgeUI = Instantiate (edgePrefab);
+            edgeUI.Initialize (graph, graph.GetNode (n1), graph.GetNode (n2), true);
+            edgeUI.transform.parent = edgeHolder;
+        }
     }
 
     public void UnfocusVertecies () {
@@ -146,6 +165,47 @@ public class GraphCreator : MonoBehaviour {
         edgeTarget?.Unfocus ();
         this.edgeTarget = edge;
         edge.Focus ();
+    }
+
+    public void LoadGraph (AbGraph graph) {
+        // this is not optimized but should work for now.
+        Destroy (edgeHolder.gameObject);
+        Destroy (nodeHolder.gameObject);
+
+        edgeHolder = new GameObject ("Edges").transform;
+        nodeHolder = new GameObject ("Nodes").transform;
+        edgeHolder.parent = this.transform;
+        nodeHolder.parent = this.transform;
+
+        edgeHolder.position = Vector3.zero;
+        nodeHolder.position = Vector3.zero;
+
+        this.graph = graph;
+        foreach (var node in graph.GetNodes ()) {
+            node.OnObjectDestroyedCallback = null;
+            node.OnSetPosCallBack = null;
+
+            var nodeOb = Instantiate (vertexPrefab);
+            nodeOb.Initialize (graph, node);
+            if (bipartite) {
+                nodeOb.SetColor (BColors[node.id % 2]);
+            }
+
+            nodeOb.transform.parent = nodeHolder;
+        }
+
+        foreach (var edge in graph.GetEdges ()) {
+            edge.OnObjectDestroyedCallback = null;
+            edge.reference = null;
+
+            CreateEdge (edge.src, edge.dest);
+        }
+
+        Debug.Log ("Graph loaded!");
+    }
+
+    public void Reload () {
+        LoadGraph (graph);
     }
 
     public void DestroyTarget () {

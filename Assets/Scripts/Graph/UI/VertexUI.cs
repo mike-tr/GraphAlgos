@@ -7,9 +7,6 @@ using UnityEngine.UI;
 
 public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, ITargetable {
     private static Camera cam;
-
-    public delegate void OnSetPos ();
-    public OnSetPos OnSetPosCallback;
     [SerializeField] Text text;
     private bool drag = false;
     private float time = 0;
@@ -45,6 +42,19 @@ public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         return node;
     }
 
+    public Node Initialize (AbGraph graph, Node node) {
+        if (graph.GetNode (node.id) != node) {
+            throw new System.ArgumentException ("the given node is not in the graph!");
+        }
+        this.node = node;
+        this.graph = graph;
+
+        SetPosition (node.position);
+
+        SetText ("Node : " + node.id);
+        return node;
+    }
+
     public void OnPointerDown (PointerEventData eventData) {
         Debug.Log (name + "Game Object Click in Progress");
         graphCreator.FocusVertex (this);
@@ -70,11 +80,7 @@ public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         pos.z = 0;
         transform.position = pos;
 
-        node.pos = pos;
-
-        if (OnSetPosCallback != null) {
-            OnSetPosCallback.Invoke ();
-        }
+        node.position = pos;
     }
 
     // Update is called once per frame
@@ -104,4 +110,5 @@ public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         focus.SetActive (false);
         //throw new System.NotImplementedException ();
     }
+
 }

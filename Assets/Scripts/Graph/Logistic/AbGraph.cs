@@ -21,8 +21,26 @@ namespace MGraph {
             edges.Add (NextNodeId, new Dictionary<int, Edge> ());
             incomingEdges.Add (NextNodeId, new List<int> ());
             NextNodeId++;
-
             return node;
+        }
+
+        public Dictionary<int, Node>.ValueCollection GetNodes () {
+            return nodes.Values;
+        }
+
+        public Node GetNode (int id) {
+            if (NodeExist (id)) {
+                return nodes[id];
+            }
+            return null;
+        }
+
+        public List<Edge> GetEdges () {
+            List<Edge> all = new List<Edge> ();
+            foreach (var item in edges.Values) {
+                all.AddRange (item.Values);
+            }
+            return all;
         }
 
         /// <summary>
