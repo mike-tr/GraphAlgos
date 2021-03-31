@@ -52,7 +52,7 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
 
         OnMoved ();
         if (directed) {
-            var edge = graph.AddDEdge (n1.id, n2.id);
+            var edge = graph.AddDirectedEdge (n1.id, n2.id);
             edges.Add (edge);
 
             Subscribe (edge);
@@ -71,11 +71,11 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
     public bool AddEdge (int n1, int n2) {
         if (v1.id == n1 && v2.id == n2) {
             line.startColor = Color.white;
-            graph.AddDEdge (n1, n2);
+            graph.AddDirectedEdge (n1, n2);
             return true;
         } else if (v2.id == n1 && v1.id == n2) {
             line.endColor = Color.white;
-            graph.AddDEdge (n1, n2);
+            graph.AddDirectedEdge (n1, n2);
             return true;
         }
         return false;

@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace MGraph {
     public class BipartiteGraph : AbGraph {
-        public override Edge AddDEdge (int n1, int n2) {
+
+        protected override Edge InnerAddDirectedEdge (int n1, int n2) {
             if (n1 % 2 == n2 % 2) {
                 Debug.Log ("Cannot have connections between nodes in the same group");
                 return null;
@@ -28,7 +29,7 @@ namespace MGraph {
         }
 
         public override (Edge, Edge) AddEdge (int n1, int n2) {
-            return (AddDEdge (n1, n2), AddDEdge (n2, n1));
+            return (InnerAddDirectedEdge (n1, n2), InnerAddDirectedEdge (n2, n1));
         }
 
         public override bool CheckPossibleConnection (int n1, int n2) {

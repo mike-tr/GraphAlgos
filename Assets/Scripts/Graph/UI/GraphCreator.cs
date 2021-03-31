@@ -10,6 +10,8 @@ public enum GraphCState {
 public class GraphCreator : MonoBehaviour {
     // private List<EdgeUI> edgesUIs = new List<EdgeUI> ();
     // private List<VertexUI> vertexUIs = new List<VertexUI> ();
+    public delegate void OnRestart ();
+    public OnRestart OnRestartCallback;
     public static GraphCreator instance;
     // Start is called before the first frame update
     public bool bipartite = true;
@@ -29,6 +31,8 @@ public class GraphCreator : MonoBehaviour {
     [SerializeField] private VertexUI vertexPrefab;
     [SerializeField] private EdgeUI edgePrefab;
 
+    private bool IsDirected = false;
+
     private Transform edgeHolder, nodeHolder;
 
     float lastClick = 0;
@@ -42,7 +46,7 @@ public class GraphCreator : MonoBehaviour {
         if (bipartite) {
             graph = new BipartiteGraph ();
         } else {
-            graph = new DGraph ();
+            graph = new Graph ();
         }
 
         cam = Camera.main;
@@ -123,7 +127,7 @@ public class GraphCreator : MonoBehaviour {
                 return;
             }
             var edgeUI = Instantiate (edgePrefab);
-            edgeUI.Initialize (graph, graph.GetNode (n1), graph.GetNode (n2), true);
+            edgeUI.Initialize (graph, graph.GetNode (n1), graph.GetNode (n2), IsDirected);
             edgeUI.transform.parent = edgeHolder;
         }
     }
@@ -168,7 +172,12 @@ public class GraphCreator : MonoBehaviour {
     }
 
     public void LoadGraph (AbGraph graph) {
+        UnfocusVertecies ();
+        UnforcusEdge ();
+
         // this is not optimized but should work for now.
+        bipartite = graph is BipartiteGraph;
+
         Destroy (edgeHolder.gameObject);
         Destroy (nodeHolder.gameObject);
 
@@ -194,7 +203,7 @@ public class GraphCreator : MonoBehaviour {
             nodeOb.transform.parent = nodeHolder;
         }
 
-        foreach (var edge in graph.GetEdges ()) {
+        foreach (var edge in graph.GetAllEdges ()) {
             edge.OnObjectDestroyedCallback = null;
             edge.reference = null;
 
@@ -208,6 +217,28 @@ public class GraphCreator : MonoBehaviour {
         LoadGraph (graph);
     }
 
+    public void NewGeneralGraph () {
+        IsDirected = false;
+        bipartite = false;
+        graph = new Graph ();
+        Reload ();
+        if (OnRestartCallback != null) {
+            OnRestartCallback.Invoke ();
+        }
+    }
+
+    public void NewBiptiteGraph () {
+        IsDirected = false;
+        bipartite = true;
+        graph = new BipartiteGraph ();
+        Reload ();
+        if (OnRestartCallback != null) {
+            OnRestartCallback.Invoke ();
+        }
+    }
+    public void ChangeToDirected () {
+        IsDirected = true;
+    }
     public void DestroyTarget () {
         if (edgeTarget) {
             edgeTarget.DestroySelf ();

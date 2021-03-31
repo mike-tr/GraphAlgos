@@ -8,7 +8,34 @@ namespace MGraph {
         protected Dictionary<int, Node> nodes = new Dictionary<int, Node> ();
         protected Dictionary<int, Dictionary<int, Edge>> edges = new Dictionary<int, Dictionary<int, Edge>> ();
         protected Dictionary<int, List<int>> incomingEdges = new Dictionary<int, List<int>> ();
+        public bool IsDirected {
+            get;
+            private set;
+        } = false;
         // private Dictionary < (int, int), Edge > edges = new Dictionary < (int, int), Edge > ();
+
+        /// <summary>
+        /// A way to make sure only decendant's of graphs can Get, important data.
+        /// /// </summary>
+        public class ShareLock {
+            protected ShareLock () { }
+        }
+
+        private class SInstance : ShareLock {
+            public static ShareLock GetLock () {
+                return new SInstance ();
+            }
+        }
+
+        protected ShareLock innerShare = SInstance.GetLock ();
+
+        public Dictionary<int, Node> GetDicNodes (ShareLock keyLock) {
+            return nodes;
+        }
+
+        public Dictionary<int, Dictionary<int, Edge>> GetDicEdges (ShareLock keyLock) {
+            return edges;
+        }
 
         /// <summary>
         /// Add a new node with a unique id, ud us unique only per graph!
@@ -35,12 +62,33 @@ namespace MGraph {
             return null;
         }
 
-        public List<Edge> GetEdges () {
+        public List<Edge> GetAllEdges () {
             List<Edge> all = new List<Edge> ();
             foreach (var item in edges.Values) {
                 all.AddRange (item.Values);
             }
             return all;
+        }
+
+        /// <summary>
+        /// Add node with specific ID, next automatic node will have to be of higher id!
+        /// </summary>
+        /// <param name="id"> </param>
+        /// <returns> new Node with node.id = id </returns>
+        public Node AddNode (int id) {
+            if (NodeExist (id)) {
+                throw new System.ArgumentException ("Node with id " + id + " already exist!");
+            }
+
+            if (NextNodeId < id) {
+                NextNodeId = id + 1;
+            }
+            // ADD
+            var node = new Node (id);
+            nodes.Add (id, node);
+            edges.Add (id, new Dictionary<int, Edge> ());
+            incomingEdges.Add (id, new List<int> ());
+            return node;
         }
 
         /// <summary>
@@ -126,6 +174,13 @@ namespace MGraph {
         }
 
         public abstract (Edge, Edge) AddEdge (int n1, int n2);
-        public abstract Edge AddDEdge (int n1, int n2);
+        protected abstract Edge InnerAddDirectedEdge (int n1, int n2);
+        public Edge AddDirectedEdge (int n1, int n2) {
+            var edge = InnerAddDirectedEdge (n1, n2);
+            if (edge != null) {
+                IsDirected = true;
+            }
+            return InnerAddDirectedEdge (n1, n2);
+        }
     }
 }
