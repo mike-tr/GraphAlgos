@@ -23,5 +23,9 @@ and maybe even bipartite graph.
 * While 2 Nodes Selected press E to connected with edge, ( if directed then connetion would be from first select to second selected ).
 * Right click to deselect all.
 
+
+## Algorithm : Hungarian ( Max-matching Bipartite Graphs )
+![hungrian](https://user-images.githubusercontent.com/48411662/113303109-6b5a4980-9309-11eb-86b7-76a7aed2b102.gif)
+
 ##### Project contributors: Michael trushkin
 ##### Engine : Unity3D
