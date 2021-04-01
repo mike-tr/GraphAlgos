@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace MGraph {
     public class Node {
+        public const int EmptyTag = -1;
         public delegate void OnObjectDestroyed ();
         public OnObjectDestroyed OnObjectDestroyedCallback;
 
@@ -25,12 +26,12 @@ namespace MGraph {
         }
         public Node (int id) {
             this.id = id;
-            this.tag = 0;
+            this.tag = EmptyTag;
         }
 
         public Node (Node node) {
             this.id = node.id;
-            this.tag = 0;
+            this.tag = EmptyTag;
             this._pos = node._pos;
         }
 

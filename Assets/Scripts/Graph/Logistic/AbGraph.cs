@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MGraph {
     public abstract class AbGraph {
         private static int NextGraphID = 1;
-        private int NextNodeId = 1;
+        private int NextNodeId = 0;
         protected Dictionary<int, Node> nodes = new Dictionary<int, Node> ();
         protected Dictionary<int, Dictionary<int, Edge>> edges = new Dictionary<int, Dictionary<int, Edge>> ();
         protected Dictionary<int, List<int>> incomingEdges = new Dictionary<int, List<int>> ();
@@ -83,8 +83,8 @@ namespace MGraph {
         public Node AddNode (int id) {
             if (NodeExist (id)) {
                 throw new System.ArgumentException ("Node with id " + id + " already exist!");
-            } else if (id == 0) {
-                throw new System.ArgumentException ("Id 0, is invalid, and saved for other purposes.");
+            } else if (id == Node.EmptyTag) {
+                throw new System.ArgumentException ("Id " + Node.EmptyTag + ", is invalid, and saved for other purposes.");
             }
 
             if (NextNodeId < id) {
@@ -105,6 +105,8 @@ namespace MGraph {
         public virtual void AddNode (Node node) {
             if (nodes.ContainsKey (node.id)) {
                 throw new System.ArgumentException ("Node with id " + node.id + " already exist!");
+            } else if (node.id == Node.EmptyTag) {
+                throw new System.ArgumentException ("Id " + Node.EmptyTag + ", is invalid, and saved for other purposes.");
             }
             node = new Node (node);
 

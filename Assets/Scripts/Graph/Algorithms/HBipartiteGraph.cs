@@ -107,7 +107,7 @@ namespace MGraph {
                 foreach (var ni in GetEdges (current.id).Keys) {
                     // Debug.Log (current.id + " : " + ni);
                     Node n = GetNode (ni);
-                    if (n.tag == 0) {
+                    if (n.tag == Node.EmptyTag) {
                         if (n.id == SINK) {
                             UpdateM (current);
                             return;
