@@ -70,7 +70,6 @@ public class GraphCreator : MonoBehaviour {
             if (!EventSystem.current.IsPointerOverGameObject ()) {
                 UnfocusVertecies ();
                 if (lastClick > Time.timeSinceLevelLoad) {
-                    //Debug.Log ("???");
                     var nodeOb = Instantiate (vertexPrefab);
                     var node = nodeOb.Initialize (graph);
                     if (bipartite) {
@@ -87,9 +86,17 @@ public class GraphCreator : MonoBehaviour {
         } else if (Input.GetKeyDown (KeyCode.V)) {
             SetVertexState ();
         } else if (Input.GetKeyDown (KeyCode.E)) {
-            SetEdgeState ();
+            InputCreateEdge ();
         } else if (Input.GetKeyDown (KeyCode.D)) {
             DestroyTarget ();
+        } else if (Input.GetKeyDown (KeyCode.H)) {
+            Debug.Log ("Run hungarian algorithm");
+            //RunHungarian ();
+            LoadHungarianNext ();
+        } else if (Input.GetKeyDown (KeyCode.J)) {
+            Debug.Log ("Run hungarian algorithm");
+            //RunHungarian ();
+            StartCoroutine (ShowHungarian ());
         }
     }
 
@@ -99,27 +106,27 @@ public class GraphCreator : MonoBehaviour {
         UnforcusEdge ();
     }
 
-    public void SetEdgeState () {
+    public void InputCreateEdge () {
         this.state = GraphCState.Edge;
         if (vertexTarget[0] && vertexTarget[1]) {
             int id1 = vertexTarget[0].id;
             int id2 = vertexTarget[1].id;
-            CreateEdge (id1, id2);
+            CreateEdge (graph, id1, id2, IsDirected);
         }
         UnfocusVertecies ();
         UnforcusEdge ();
     }
 
-    private void CreateEdge (int n1, int n2) {
-        if (graph.CheckPossibleConnection (n1, n2)) {
-            var edge = graph.GetEdge (n1, n2);
+    private void CreateEdge (AbGraph targetGraph, int n1, int n2, bool directed) {
+        if (targetGraph.CheckPossibleConnection (n1, n2)) {
+            var edge = targetGraph.GetEdge (n1, n2);
             if (edge?.reference != null) {
                 UnfocusVertecies ();
                 UnforcusEdge ();
                 return;
             }
 
-            edge = graph.GetEdge (n2, n1);
+            edge = targetGraph.GetEdge (n2, n1);
             if (edge?.reference != null) {
                 edge.reference.AddEdge (n1, n2);
                 UnfocusVertecies ();
@@ -127,7 +134,7 @@ public class GraphCreator : MonoBehaviour {
                 return;
             }
             var edgeUI = Instantiate (edgePrefab);
-            edgeUI.Initialize (graph, graph.GetNode (n1), graph.GetNode (n2), IsDirected);
+            edgeUI.Initialize (targetGraph, targetGraph.GetNode (n1), targetGraph.GetNode (n2), directed);
             edgeUI.transform.parent = edgeHolder;
         }
     }
@@ -171,12 +178,12 @@ public class GraphCreator : MonoBehaviour {
         edge.Focus ();
     }
 
-    public void LoadGraph (AbGraph graph) {
+    public void LoadGraph (AbGraph loadGraph, bool overrideGraph) {
         UnfocusVertecies ();
         UnforcusEdge ();
 
         // this is not optimized but should work for now.
-        bipartite = graph is BipartiteGraph;
+        bipartite = loadGraph is BipartiteGraph;
 
         Destroy (edgeHolder.gameObject);
         Destroy (nodeHolder.gameObject);
@@ -189,32 +196,40 @@ public class GraphCreator : MonoBehaviour {
         edgeHolder.position = Vector3.zero;
         nodeHolder.position = Vector3.zero;
 
-        this.graph = graph;
-        foreach (var node in graph.GetNodes ()) {
+        if (overrideGraph) {
+            this.graph = loadGraph;
+        }
+        foreach (var node in loadGraph.GetNodes ()) {
             node.OnObjectDestroyedCallback = null;
             node.OnSetPosCallBack = null;
 
             var nodeOb = Instantiate (vertexPrefab);
-            nodeOb.Initialize (graph, node);
+            nodeOb.Initialize (loadGraph, node);
             if (bipartite) {
-                nodeOb.SetColor (BColors[node.id % 2]);
+                var index = Mathf.Abs (node.id % 2);
+                nodeOb.SetColor (BColors[index]);
             }
 
             nodeOb.transform.parent = nodeHolder;
         }
 
-        foreach (var edge in graph.GetAllEdges ()) {
+        foreach (var edge in loadGraph.GetAllEdges ()) {
+            // Debug.Log (edge.src + " : " + edge.dest);
             edge.OnObjectDestroyedCallback = null;
             edge.reference = null;
 
-            CreateEdge (edge.src, edge.dest);
+            CreateEdge (loadGraph, edge.src, edge.dest, true);
+
+            // Debug.Log (edge.reference);
         }
 
-        Debug.Log ("Graph loaded!");
+        // Debug.Log ("Graph loaded!");
     }
 
     public void Reload () {
-        LoadGraph (graph);
+        hungarian = null;
+        hid = 0;
+        LoadGraph (graph, false);
     }
 
     public void NewGeneralGraph () {
@@ -239,6 +254,49 @@ public class GraphCreator : MonoBehaviour {
     public void ChangeToDirected () {
         IsDirected = true;
     }
+
+    Hungarian hungarian;
+    public bool RunHungarian () {
+        if (graph is BipartiteGraph && !graph.IsDirected) {
+            hungarian = new Hungarian ((BipartiteGraph) graph);
+
+            foreach (var edge in hungarian.GetMaxMatching ()) {
+                // print ("PM : " + edge.src + " , " + edge.dest);
+                ((EdgeUI) edge.reference).Focus ();
+            }
+            return true;
+        } else {
+            Debug.Log ("Cannot run hunarian D : " + graph.IsDirected);
+            return false;
+        }
+    }
+
+    public IEnumerator ShowHungarian () {
+        Reload ();
+        if (hungarian?.targetID == graph.GraphID || RunHungarian ()) {
+            yield return null;
+            foreach (var edge in hungarian.GetMaxMatching ()) {
+                print ("PM : " + edge.src + " , " + edge.dest);
+                ((EdgeUI) edge.reference).Focus ();
+            }
+        }
+    }
+
+    int hid = 0;
+    public void LoadHungarianNext () {
+        if (hungarian?.targetID == graph.GraphID || RunHungarian ()) {
+            if (hid < hungarian.GetSteps ().Count) {
+                Debug.Log ("Loading step : " + hid + " out of " + hungarian.GetSteps ().Count);
+                LoadGraph (hungarian.GetSteps () [hid], false);
+                hid++;
+            } else {
+                Debug.Log ("No more steps to show");
+            }
+        } else {
+            Debug.Log ("Cannot run hunarian D : " + graph.IsDirected);
+        }
+    }
+
     public void DestroyTarget () {
         if (edgeTarget) {
             edgeTarget.DestroySelf ();

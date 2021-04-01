@@ -16,6 +16,10 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
     List<Edge> edges = new List<Edge> ();
 
     Node v1, v2;
+
+    private void Awake () {
+
+    }
     void Start () {
         UpdateCollider ();
         graphcreator = GraphCreator.instance;
@@ -69,14 +73,18 @@ public class EdgeUI : MonoBehaviour, IPointerClickHandler, ITargetable, IEdgeRef
     }
 
     public bool AddEdge (int n1, int n2) {
+        Edge edge = null;
         if (v1.id == n1 && v2.id == n2) {
             line.startColor = Color.white;
-            graph.AddDirectedEdge (n1, n2);
-            return true;
+            edge = graph.AddDirectedEdge (n1, n2);
         } else if (v2.id == n1 && v1.id == n2) {
             line.endColor = Color.white;
-            graph.AddDirectedEdge (n1, n2);
-            return true;
+            edge = graph.AddDirectedEdge (n1, n2);
+        }
+
+        if (edge != null) {
+            edges.Add (edge);
+            Subscribe (edge);
         }
         return false;
     }

@@ -56,7 +56,7 @@ public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
 
     public void OnPointerDown (PointerEventData eventData) {
-        Debug.Log (name + "Game Object Click in Progress");
+        // Debug.Log (name + "Game Object Click in Progress");
         graphCreator.FocusVertex (this);
         drag = true;
         time += 0.1f;
@@ -64,7 +64,7 @@ public class VertexUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 
     //Detect if clicks are no longer registering
     public void OnPointerUp (PointerEventData pointerEventData) {
-        Debug.Log (name + "No longer being clicked");
+        // Debug.Log (name + "No longer being clicked");
         drag = false;
     }
 

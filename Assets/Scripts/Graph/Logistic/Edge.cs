@@ -21,5 +21,18 @@ namespace MGraph {
                 OnObjectDestroyedCallback.Invoke ();
             }
         }
+
+        public override bool Equals (object obj) {
+            if (obj == null || GetType () != obj.GetType ()) {
+                return false;
+            }
+            Edge other = (Edge) obj;
+            return other.src == src && other.dest == dest;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode () {
+            return src * 2 * dest + (dest + 1) * 2 + src;
+        }
     }
 }

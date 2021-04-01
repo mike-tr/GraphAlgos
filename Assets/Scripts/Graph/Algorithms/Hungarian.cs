@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,20 +18,51 @@ namespace MGraph {
     /// </summary>
     public class Hungarian {
 
-        private List<BipartiteGraph> steps = new List<BipartiteGraph> ();
-        private List<Edge> matching = new List<Edge> ();
+        private List<HBipartiteGraph> steps = new List<HBipartiteGraph> ();
+        private List<Edge> MaxMatching = new List<Edge> ();
         private BipartiteGraph graph;
-        private BipartiteGraph currentIter;
-        public Hungarian (BipartiteGraph graph) {
-            this.graph = graph;
+        private HBipartiteGraph currentIter;
+
+        public int targetID {
+            get {
+                return graph.GraphID;
+            }
         }
 
         /// <summary>
-        /// Denote Group A would be 0 mod 2 nodes,
-        /// while Group B would be 1 mod 2 nodes.
+        /// Get a graph and run the Hungarian method on the given graph,
+        /// Expects Bipartite undirected graph.
         /// </summary>
+        /// <param name="graph"></param>
+        public Hungarian (BipartiteGraph graph) {
+            if (graph.IsDirected) {
+                Debug.Log ("the given graph is Directed cannot run the algorithm!");
+                return;
+            }
+            this.graph = graph;
+            FindMaxMatching ();
+        }
         private void FindMaxMatching () {
+            currentIter = new HBipartiteGraph (graph, MaxMatching);
+            int i = 0;
+            while (currentIter.NoAugmentation () == false && i < 10) {
+                MaxMatching = currentIter.GetNewM ();
+                steps.Add (currentIter);
+                currentIter = new HBipartiteGraph (graph, MaxMatching);
+                i++;
+            }
 
+            if (i < 10) {
+                steps.Add (currentIter);
+            }
+        }
+
+        public List<Edge> GetMaxMatching () {
+            return MaxMatching;
+        }
+
+        public List<HBipartiteGraph> GetSteps () {
+            return steps;
         }
     }
 }

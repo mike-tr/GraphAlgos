@@ -9,7 +9,7 @@ namespace MGraph {
 
         public delegate void OnSetPos ();
         public OnSetPos OnSetPosCallBack;
-
+        public int tag;
         // Start is called before the first frame update
         public int id { get; protected set; }
 
@@ -25,12 +25,31 @@ namespace MGraph {
         }
         public Node (int id) {
             this.id = id;
+            this.tag = 0;
+        }
+
+        public Node (Node node) {
+            this.id = node.id;
+            this.tag = 0;
+            this._pos = node._pos;
         }
 
         public void DestroySelf () {
             if (OnObjectDestroyedCallback != null) {
                 OnObjectDestroyedCallback.Invoke ();
             }
+        }
+
+        public override bool Equals (object obj) {
+            if (obj == null || GetType () != obj.GetType ()) {
+                return false;
+            }
+            return obj.GetHashCode () == GetHashCode ();
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode () {
+            return id;
         }
     }
 }

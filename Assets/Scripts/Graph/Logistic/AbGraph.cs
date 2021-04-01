@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace MGraph {
     public abstract class AbGraph {
+        private static int NextGraphID = 1;
         private int NextNodeId = 1;
         protected Dictionary<int, Node> nodes = new Dictionary<int, Node> ();
         protected Dictionary<int, Dictionary<int, Edge>> edges = new Dictionary<int, Dictionary<int, Edge>> ();
@@ -14,6 +15,10 @@ namespace MGraph {
         } = false;
         // private Dictionary < (int, int), Edge > edges = new Dictionary < (int, int), Edge > ();
 
+        public int GraphID {
+            get;
+            private set;
+        } = NextGraphID++;
         /// <summary>
         /// A way to make sure only decendant's of graphs can Get, important data.
         /// /// </summary>
@@ -78,6 +83,8 @@ namespace MGraph {
         public Node AddNode (int id) {
             if (NodeExist (id)) {
                 throw new System.ArgumentException ("Node with id " + id + " already exist!");
+            } else if (id == 0) {
+                throw new System.ArgumentException ("Id 0, is invalid, and saved for other purposes.");
             }
 
             if (NextNodeId < id) {
@@ -99,6 +106,8 @@ namespace MGraph {
             if (nodes.ContainsKey (node.id)) {
                 throw new System.ArgumentException ("Node with id " + node.id + " already exist!");
             }
+            node = new Node (node);
+
             var id = node.id;
             nodes.Add (id, node);
             edges.Add (id, new Dictionary<int, Edge> ());
@@ -166,6 +175,13 @@ namespace MGraph {
             }
         }
 
+        public Dictionary<int, Edge> GetEdges (int nID) {
+            if (NodeExist (nID)) {
+                return edges[nID];
+            }
+            return null;
+        }
+
         public Edge GetEdge (int n1, int n2) {
             if (NodeExist (n1)) {
                 return InnerGetEdge (n1, n2);
@@ -176,11 +192,15 @@ namespace MGraph {
         public abstract (Edge, Edge) AddEdge (int n1, int n2);
         protected abstract Edge InnerAddDirectedEdge (int n1, int n2);
         public Edge AddDirectedEdge (int n1, int n2) {
-            var edge = InnerAddDirectedEdge (n1, n2);
-            if (edge != null) {
-                IsDirected = true;
+
+            var edge = GetEdge (n1, n2);
+            if (edge == null) {
+                edge = InnerAddDirectedEdge (n1, n2);
+                if (edge != null) {
+                    IsDirected = true;
+                }
             }
-            return InnerAddDirectedEdge (n1, n2);
+            return edge;
         }
     }
 }
